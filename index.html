@@ -222,16 +222,52 @@
 
                     return
                 }
-            })
-            // $canvas.addEventListener('touchend',ev =>{
+                if(mode === MODES.RECTANGLE){
+                ctx.putImageData(imageData,0,0)
+                //startX & startY -> coordenadas iniciales del rectangulo
+                let width = offsetX - startX
+                let height = offsetY - startY
+                
+                if(isShiftPressed){
+                    const sideLength = Math.min(
+                        Math.abs(width),
+                        Math.abs(height)
+                    )
+                    width = width > 0 ? sideLength: -sideLength
+                    height = height > 0 ? sideLength: -sideLength
 
-            //     console.log("terminamos de tocar la pantalla")
-            //     console.log(ev)
-            // }
-            // )
+                }
+                ctx.beginPath()
+                ctx.rect(startX, startY,width,height)
+                ctx.stroke()
+                
+                return
+            }
+            if(mode===MODES.ELLIPSE){
+                ctx.putImageData(imageData,0,0)
+
+                let width = offsetX -startX
+                let height = offsetY - startY
+
+                if(isShiftPressed){
+                    const sideLength = Math.min(
+                        Math.abs(width),
+                        Math.abs(height)
+                    )
+                    width = width> 0 ?sideLength : -sideLength
+                    height = height> 0 ?sideLength : -sideLength
+
+                }
+                ctx.beginPath()
+                ctx.ellipse(startX,startY,Math.abs(width),Math.abs(height),0,0, 2*Math.PI,true)
+                ctx.stroke()
+                return
+            }
+            })
+            $canvas.addEventListener('touchend',stopDrawing)
             
-            // $canvas.addEventListener('touchcancel', ev =>
-            // console.log(ev.targetTouches[0].clientX,ev.targetTouches[0].clientY))
+            
+            $canvas.addEventListener('touchcancel',stopDrawing)
             console.log("celular")
         }
 
@@ -267,7 +303,7 @@
         function startDrawing(event){
             isDrawing= true
             const {offsetX, offsetY} = event;
-
+            
             //guardar las coordenadas iniciales
             [startX, startY] = [offsetX, offsetY];
             [lastX, lastY] = [offsetX, offsetY];
@@ -278,8 +314,8 @@
 
         function draw(event){
             if(!isDrawing) return
+                const {offsetX, offsetY} = event
 
-            const {offsetX, offsetY} = event
             if(mode === MODES.DRAW || mode === MODES.ERASE){
                 //comenzar el trazado
                 ctx.beginPath()
