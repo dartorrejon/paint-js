@@ -148,8 +148,7 @@
 
         //ELEMENTS
         const $canvas = $('#canvas')
-        $canvas.willReadFrequently = true;
-
+        
         const $colorPicker = $('#color-picker')
         const $drawBtn = $('#draw-btn')
         const $eraseBtn = $('#erase-btn')
@@ -158,6 +157,7 @@
         const $pickerBtn = $('#picker-btn')
         const $clearBtn = $("#clear-btn");
         const ctx = $canvas.getContext('2d')
+        $canvas.willReadFrequently = true;
         
 
         //STATE
@@ -174,102 +174,12 @@
         $canvas.addEventListener('mousemove',draw)
         $canvas.addEventListener('mouseup', stopDrawing)
         $canvas.addEventListener('mouseleave', stopDrawing)
-
-        
-        if(esCelular()){
-            $canvas.addEventListener('touchstart', ev =>{
-                console.log("empezamos tocando")
-
-                isDrawing= true
-                const toques = ev.changedTouches[0]
-                let offsetX = toques.clientX - $canvas.getBoundingClientRect().left;
-                let offsetY = toques.clientY - $canvas.getBoundingClientRect().top;
-
-            //guardar las coordenadas iniciales
-            [startX, startY] = [offsetX, offsetY];
-            [lastX, lastY] = [offsetX, offsetY];
-
-            imageData = ctx.getImageData(
-                0,0,canvas.width,canvas.height)
-            })
-
-
-            $canvas.addEventListener('touchmove', ev =>{
-                ev.preventDefault()
-                console.log("moviendome")
-                if(!isDrawing) return
-
-                const toques = ev.changedTouches[0]
-                let offsetX = toques.clientX - $canvas.getBoundingClientRect().left;
-                let offsetY = toques.clientY - $canvas.getBoundingClientRect().top;
-
-           
-                if(mode === MODES.DRAW || mode === MODES.ERASE){
-                    //comenzar el trazado
-                    ctx.beginPath()
-
-                    //mover el trazado a las coordenadas actuales
-                    ctx.moveTo(lastX, lastY)
-
-                    //dibujar una linea entre coordenadas actuales y las nuevas
-                    ctx.lineTo(offsetX, offsetY)
-
-
-                    ctx.stroke();
-
-                    //actualizar las ultimas coordenadas
-                    [lastX, lastY] = [offsetX, offsetY]
-
-                    return
-                }
-                if(mode === MODES.RECTANGLE){
-                ctx.putImageData(imageData,0,0)
-                //startX & startY -> coordenadas iniciales del rectangulo
-                let width = offsetX - startX
-                let height = offsetY - startY
-                
-                if(isShiftPressed){
-                    const sideLength = Math.min(
-                        Math.abs(width),
-                        Math.abs(height)
-                    )
-                    width = width > 0 ? sideLength: -sideLength
-                    height = height > 0 ? sideLength: -sideLength
-
-                }
-                ctx.beginPath()
-                ctx.rect(startX, startY,width,height)
-                ctx.stroke()
-                
-                return
-            }
-            if(mode===MODES.ELLIPSE){
-                ctx.putImageData(imageData,0,0)
-
-                let width = offsetX -startX
-                let height = offsetY - startY
-
-                if(isShiftPressed){
-                    const sideLength = Math.min(
-                        Math.abs(width),
-                        Math.abs(height)
-                    )
-                    width = width> 0 ?sideLength : -sideLength
-                    height = height> 0 ?sideLength : -sideLength
-
-                }
-                ctx.beginPath()
-                ctx.ellipse(startX,startY,Math.abs(width),Math.abs(height),0,0, 2*Math.PI,true)
-                ctx.stroke()
-                return
-            }
-            })
-            $canvas.addEventListener('touchend',stopDrawing)
-            
-            
-            $canvas.addEventListener('touchcancel',stopDrawing)
-            console.log("celular")
-        }
+         
+        //PHONE EVENTS
+        $canvas.ontouchstart = startDrawing
+        $canvas.ontouchmove = draw
+        $canvas.ontouchend = stopDrawing
+        $canvas.ontouchcancel = stopDrawing
 
         $colorPicker.addEventListener("change",handleChangeColor)
         //$colorPicker.onchange = handleChangeColor <-- otra forma de escribir el codigo de arriba creo que es mas legible y corto
@@ -302,7 +212,14 @@
         //METHODS
         function startDrawing(event){
             isDrawing= true
-            const {offsetX, offsetY} = event;
+            let offsetX, offsetY
+            if(event.type  === "mousedown"){
+                 ({offsetX, offsetY} = event);
+            }else if(event.type === "touchstart"){
+                const toques = event.changedTouches[0]
+                offsetX = toques.clientX - $canvas.getBoundingClientRect().left;
+                offsetY = toques.clientY - $canvas.getBoundingClientRect().top;
+            }
             
             //guardar las coordenadas iniciales
             [startX, startY] = [offsetX, offsetY];
@@ -314,7 +231,17 @@
 
         function draw(event){
             if(!isDrawing) return
-                const {offsetX, offsetY} = event
+            
+            let offsetX, offsetY
+            if(event.type  === "mousedown"){
+                 ({offsetX, offsetY} = event);
+            }else if(event.type === "touchmove"){
+                event.preventDefault()
+                const toques = event.changedTouches[0]
+                offsetX = toques.clientX - $canvas.getBoundingClientRect().left;
+                offsetY = toques.clientY - $canvas.getBoundingClientRect().top;
+            }
+
 
             if(mode === MODES.DRAW || mode === MODES.ERASE){
                 //comenzar el trazado
@@ -369,7 +296,6 @@
                     )
                     width = width> 0 ?sideLength : -sideLength
                     height = height> 0 ?sideLength : -sideLength
-
                 }
                 ctx.beginPath()
                 ctx.ellipse(startX,startY,Math.abs(width),Math.abs(height),0,0, 2*Math.PI,true)
@@ -410,7 +336,6 @@
                 return
                 
             }
-
             if(mode === MODES.RECTANGLE){
                 $rectangleBtn.classList.add('active')
                 canvas.style.cursor = "crosshair"
@@ -425,7 +350,6 @@
                 ctx.lineWidth=2 
                 return
             }
-
             if(mode === MODES.ERASE){
                 $eraseBtn.classList.add('active')
                 canvas.style.cursor = 'url("./cursors/erase.png") 0 24, auto'
@@ -461,17 +385,12 @@
         function handleKeyUp({key}){
             if(key === 'Shift') isShiftPressed = false
         }
-
-
-        function esCelular(){
-            return /Android|webOS|IPhoneIPodBlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-        }
+       
         setMode(MODES.DRAW)
         //Show picker if browser has support
         if( typeof window.EyeDropper != 'undefined'){
             $pickerBtn.removeAttribute('disabled')
         }
-        
     </script>
 </head>
 <body>
