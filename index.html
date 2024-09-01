@@ -148,6 +148,8 @@
 
         //ELEMENTS
         const $canvas = $('#canvas')
+        $canvas.willReadFrequently = true;
+
         const $colorPicker = $('#color-picker')
         const $drawBtn = $('#draw-btn')
         const $eraseBtn = $('#erase-btn')
@@ -155,7 +157,6 @@
         const $rectangleBtn = $('#rectangle-btn')
         const $pickerBtn = $('#picker-btn')
         const $clearBtn = $("#clear-btn");
-        $canvas.willReadFrequently = true;
         const ctx = $canvas.getContext('2d')
         
 
@@ -173,7 +174,66 @@
         $canvas.addEventListener('mousemove',draw)
         $canvas.addEventListener('mouseup', stopDrawing)
         $canvas.addEventListener('mouseleave', stopDrawing)
+
         
+        if(esCelular()){
+            $canvas.addEventListener('touchstart', ev =>{
+                console.log("empezamos tocando")
+
+                isDrawing= true
+                const toques = ev.changedTouches[0]
+                let offsetX = toques.clientX - $canvas.getBoundingClientRect().left;
+                let offsetY = toques.clientY - $canvas.getBoundingClientRect().top;
+
+            //guardar las coordenadas iniciales
+            [startX, startY] = [offsetX, offsetY];
+            [lastX, lastY] = [offsetX, offsetY];
+
+            imageData = ctx.getImageData(
+                0,0,canvas.width,canvas.height)
+            })
+
+
+            $canvas.addEventListener('touchmove', ev =>{
+                ev.preventDefault()
+                console.log("moviendome")
+                if(!isDrawing) return
+
+                const toques = ev.changedTouches[0]
+                let offsetX = toques.clientX - $canvas.getBoundingClientRect().left;
+                let offsetY = toques.clientY - $canvas.getBoundingClientRect().top;
+
+           
+                if(mode === MODES.DRAW || mode === MODES.ERASE){
+                    //comenzar el trazado
+                    ctx.beginPath()
+
+                    //mover el trazado a las coordenadas actuales
+                    ctx.moveTo(lastX, lastY)
+
+                    //dibujar una linea entre coordenadas actuales y las nuevas
+                    ctx.lineTo(offsetX, offsetY)
+
+
+                    ctx.stroke();
+
+                    //actualizar las ultimas coordenadas
+                    [lastX, lastY] = [offsetX, offsetY]
+
+                    return
+                }
+            })
+            // $canvas.addEventListener('touchend',ev =>{
+
+            //     console.log("terminamos de tocar la pantalla")
+            //     console.log(ev)
+            // }
+            // )
+            
+            // $canvas.addEventListener('touchcancel', ev =>
+            // console.log(ev.targetTouches[0].clientX,ev.targetTouches[0].clientY))
+            console.log("celular")
+        }
 
         $colorPicker.addEventListener("change",handleChangeColor)
         //$colorPicker.onchange = handleChangeColor <-- otra forma de escribir el codigo de arriba creo que es mas legible y corto
@@ -227,7 +287,7 @@
                 //mover el trazado a las coordenadas actuales
                 ctx.moveTo(lastX, lastY)
 
-                //dibunjar una linea entre coordenadas actuales y las nuevas
+                //dibujar una linea entre coordenadas actuales y las nuevas
                 ctx.lineTo(offsetX, offsetY)
 
 
@@ -366,11 +426,16 @@
             if(key === 'Shift') isShiftPressed = false
         }
 
+
+        function esCelular(){
+            return /Android|webOS|IPhoneIPodBlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+        }
         setMode(MODES.DRAW)
         //Show picker if browser has support
         if( typeof window.EyeDropper != 'undefined'){
             $pickerBtn.removeAttribute('disabled')
         }
+        
     </script>
 </head>
 <body>
