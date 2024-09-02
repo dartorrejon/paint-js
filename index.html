@@ -44,6 +44,7 @@
             padding: 2px;
 
             button{
+                position: relative;
                 border: 0;
                 background: transparent;
 
@@ -52,6 +53,30 @@
                         1px 1px black,
                         inset -1px -1px gray,
                         inset 1px 1px #fff;
+                }
+                &:hover > ul{
+                    visibility: visible;
+                  
+                }
+                ul{
+                    position: absolute;
+                    left: -20px;
+                    top: 4px;
+                    visibility: hidden;
+                    width: max-content;
+                   
+                   
+                    li{
+                        padding: 4px;
+                        position: fixed;
+                        text-align: left;
+                        background-color: silver;
+                        margin-left: -20px;
+                        text-decoration: none;
+                        list-style: none;
+                        font-size: .8em;
+                    }
+
                 }
             }
         }
@@ -130,6 +155,14 @@
             background-image: url("./icons/trash.png");
             background-size: 20px;
         }
+        #fill-btn{
+            background-image: url("./icons/fill.png");
+            background-size: 20px;
+        }
+        #rect-select-btn{
+            background-image: url("./icons/shape.png");
+            background-size: 15px;
+        }
         
     </style>
     <script type="module">
@@ -156,8 +189,7 @@
         const $rectangleBtn = $('#rectangle-btn')
         const $pickerBtn = $('#picker-btn')
         const $clearBtn = $("#clear-btn");
-        const ctx = $canvas.getContext('2d')
-        $canvas.willReadFrequently = true;
+        const ctx = $canvas.getContext('2d',{willReadFrequently: true})
         
 
         //STATE
@@ -233,7 +265,7 @@
             if(!isDrawing) return
             
             let offsetX, offsetY
-            if(event.type  === "mousedown"){
+            if(event.type  === "mousemove"){
                  ({offsetX, offsetY} = event);
             }else if(event.type === "touchmove"){
                 event.preventDefault()
@@ -391,6 +423,22 @@
         if( typeof window.EyeDropper != 'undefined'){
             $pickerBtn.removeAttribute('disabled')
         }
+
+
+
+        document.getElementById("guardarIMG").addEventListener("click", function() {
+            // Convertir el canvas a una URL de datos en formato PNG
+            const dataURL = $canvas.toDataURL("image/png");
+
+            // Crear un enlace de descarga
+            const enlace = document.createElement("a");
+            enlace.href = dataURL;
+            enlace.download = "mi_dibujo.png"; // Nombre del archivo a guardar
+
+            // Simular clic en el enlace para descargar la imagen
+            enlace.click();
+        });
+        
     </script>
 </head>
 <body>
@@ -400,8 +448,20 @@
     </h1>
     <div id="container"> 
         <header>
-            <button>File</button>
-            <button>Edit</button>
+            <button>File
+                <ul>
+                    <li id="guardarIMG">
+                        Guardar archivo
+
+                    </li>
+                </ul>
+            </button>
+            <button>Edit <ul>
+                <li>
+                   Undo
+
+                </li>
+            </ul></button>
             <button>View</button>
             <button>Image</button>
             <button>Options </button>
@@ -415,6 +475,10 @@
                 <button id="ellipse-btn" title="Elipse"></button>
                 <button id="picker-btn" title="Capturar color" disabled></button>
                 <button id="clear-btn" title="Limpiar dibujo"></button>
+                <button id="fill-btn" title="Rellenar figura"></button>
+                <button id="rect-select-btn" title="Seleccion Rectangular"></button>
+
+
 
             </nav>
         </aside>
