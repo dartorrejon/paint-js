@@ -173,7 +173,8 @@
            RECTANGLE: 'rectangle',
            ELLIPSE: 'ellipse',
            PICKER: 'picker',
-           CLEAR: 'clear' 
+           CLEAR: 'clear',
+           REC_DASH: 'rec_dash' 
         }
         //UTILITIES
         const $ = selector => document.querySelector(selector)
@@ -189,6 +190,7 @@
         const $rectangleBtn = $('#rectangle-btn')
         const $pickerBtn = $('#picker-btn')
         const $clearBtn = $("#clear-btn");
+        const $recSelect = $('#rect-select-btn')
         const ctx = $canvas.getContext('2d',{willReadFrequently: true})
         
 
@@ -235,6 +237,9 @@
                 return clearCanvas()
             }
         )
+        $recSelect.addEventListener("click", () =>{
+            setMode(MODES.REC_DASH)
+        })
 
         document.addEventListener("keydown", handleKeyDown)
         document.addEventListener("keyup", handleKeyUp)
@@ -265,6 +270,8 @@
             if(!isDrawing) return
             
             let offsetX, offsetY
+
+            //Comprobamos si el evento es del mouse o del tap del celular
             if(event.type  === "mousemove"){
                  ({offsetX, offsetY} = event);
             }else if(event.type === "touchmove"){
@@ -274,8 +281,10 @@
                 offsetY = toques.clientY - $canvas.getBoundingClientRect().top;
             }
 
-
             if(mode === MODES.DRAW || mode === MODES.ERASE){
+
+                ctx.setLineDash([])
+
                 //comenzar el trazado
                 ctx.beginPath()
 
@@ -307,14 +316,16 @@
                     )
                     width = width > 0 ? sideLength: -sideLength
                     height = height > 0 ? sideLength: -sideLength
-
                 }
+
+                ctx.setLineDash([])
+
                 ctx.beginPath()
                 ctx.rect(startX, startY,width,height)
                 ctx.stroke()
-                
                 return
             }
+
             if(mode===MODES.ELLIPSE){
                 ctx.putImageData(imageData,0,0)
 
@@ -329,13 +340,38 @@
                     width = width> 0 ?sideLength : -sideLength
                     height = height> 0 ?sideLength : -sideLength
                 }
+
+                //Resetaamos la linea punteada a normal con un array vacio
+                ctx.setLineDash([])
+
                 ctx.beginPath()
                 ctx.ellipse(startX,startY,Math.abs(width),Math.abs(height),0,0, 2*Math.PI,true)
                 ctx.stroke()
                 return
             }
 
+            if(mode === MODES.REC_DASH){
+                ctx.putImageData(imageData,0,0)
 
+                let width = offsetX - startX
+                let height = offsetY - startY
+
+                if(isShiftPressed){
+                    const sideLength = Math.min(
+                        Math.abs(width),
+                        Math.abs(height)
+                    )
+                    width = width > 0 ? sideLength : -sideLength
+                    height = height > 0 ? sideLength : -sideLength
+                }
+                //setLineDash = Metodo para cambiar de linea comun a punteada
+                ctx.setLineDash([3,3])
+
+                ctx.beginPath()
+                ctx.rect(startX, startY,width,height)
+                ctx.stroke()
+                return
+            }
         }
 
         function stopDrawing(event){
@@ -408,6 +444,14 @@
                     setMode(previousMode)
                 },200)
             }
+
+            if(mode  === MODES.REC_DASH){
+                $recSelect.classList.add('active')
+                ctx.lineWidth = 1
+                ctx.strokeStyle = "#000000"
+                $colorPicker.value = "#000000"
+                $canvas.style.cursor = "crosshair"
+            }
         }
 
         function handleKeyDown({key}){
@@ -474,9 +518,9 @@
                 <button id="rectangle-btn" title="Rectángulo"></button>
                 <button id="ellipse-btn" title="Elipse"></button>
                 <button id="picker-btn" title="Capturar color" disabled></button>
-                <button id="clear-btn" title="Limpiar dibujo"></button>
                 <button id="fill-btn" title="Rellenar figura"></button>
                 <button id="rect-select-btn" title="Seleccion Rectangular"></button>
+                <button id="clear-btn" title="Limpiar dibujo"></button>
 
 
 
