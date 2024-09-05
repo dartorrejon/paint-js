@@ -65,7 +65,6 @@
                     visibility: hidden;
                     width: max-content;
                    
-                   
                     li{
                         padding: 4px;
                         position: fixed;
@@ -393,8 +392,10 @@
             let previousMode = mode 
             if(previousMode === MODES.ERASE) previousMode = MODES.DRAW
             mode = newMode
-            //para limpiar el boton activo actual
+
+            //para limpiar el boton activo actual y habilitar el boton para seleccion de color nuevamente.
             $('button.active')?.classList.remove('active')
+            $colorPicker.style.pointerEvents = "initial"
             
             if(mode === MODES.DRAW){
                 $drawBtn.classList.add('active')
@@ -451,6 +452,7 @@
                 ctx.strokeStyle = "#000000"
                 $colorPicker.value = "#000000"
                 $canvas.style.cursor = "crosshair"
+                $colorPicker.style.pointerEvents = "none"
             }
         }
 
