@@ -363,7 +363,7 @@
                     width = width > 0 ? sideLength : -sideLength
                     height = height > 0 ? sideLength : -sideLength
                 }
-                //setLineDash = Metodo para cambiar de linea comun a punteada
+                //setLineDash -> Metodo para cambiar de linea comun a punteada
                 ctx.setLineDash([3,3])
 
                 ctx.beginPath()
@@ -390,17 +390,20 @@
 
         async function setMode(newMode){
             let previousMode = mode 
-            if(previousMode === MODES.ERASE) previousMode = MODES.DRAW
-            mode = newMode
+            
+            if( newMode === MODES.CLEAR) previousMode = MODES.DRAW
 
-            //para limpiar el boton activo actual y habilitar el boton para seleccion de color nuevamente.
+            //Seteando en default el mode y el modo de trazado normal.
+            mode = newMode
+            ctx.globalCompositeOperation = "source-over"
+
+            //limpiamos el boton activo actual y habilitamos el boton para seleccion de color nuevamente.
             $('button.active')?.classList.remove('active')
             $colorPicker.style.pointerEvents = "initial"
             
             if(mode === MODES.DRAW){
                 $drawBtn.classList.add('active')
                 canvas.style.cursor ="url('./cursors/pincel.png') 0 24, auto"
-                ctx.globalCompositeOperation = 'source-over'
                 ctx.lineWidth=2 
                 return
                 
@@ -408,14 +411,12 @@
             if(mode === MODES.RECTANGLE){
                 $rectangleBtn.classList.add('active')
                 canvas.style.cursor = "crosshair"
-                ctx.globalCompositeOperation = 'source-over'
                 ctx.lineWidth=2 
                 return
             }
             if(mode === MODES.ELLIPSE){
                 $ellipseBtn.classList.add('active')
                 canvas.style.cursor = "crosshair"
-                ctx.globalCompositeOperation = 'source-over'
                 ctx.lineWidth=2 
                 return
             }
@@ -430,10 +431,17 @@
                 $pickerBtn.classList.add('active')
                 const eyeDropper = new window.EyeDropper()
                 try {
+
                     const {sRGBHex} = await eyeDropper.open()
                     ctx.strokeStyle = sRGBHex
                     $colorPicker.value = sRGBHex
-                    setMode(previousMode)
+
+                    //condicion para evitar que luego del color picker vuelva a modo erase o seleccion rectangular
+                    if(previousMode === MODES.ERASE || previousMode === MODES.REC_DASH){
+                        setMode(MODES.DRAW)
+                    }else{
+                        setMode(previousMode)
+                    }
                 } catch (error) {
                     
                 }
