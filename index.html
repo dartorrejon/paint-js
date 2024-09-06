@@ -105,22 +105,17 @@
            
 
             nav{
-                display: flex;
-                flex-wrap: wrap;
-                gap: 1px;
-                justify-content: center;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1px 2px;
                
-           
-
                 button{
                     width: 24px;
                     height: 24px;
-
                     background: #bdbdbd url("./icons/draw.png") no-repeat center;
                     border: 1px solid #eee;
                     border-right-color: #000;
                     border-bottom-color: #000;
-
                     image-rendering: pixelated;
 
                     &.active{
@@ -162,6 +157,11 @@
             background-image: url("./icons/shape.png");
             background-size: 15px;
         }
+        #image-data-backup{
+            background-image: url("./icons/undo.png");
+            background-size: 17px;
+        }
+        
         
     </style>
     <script type="module">
@@ -173,7 +173,8 @@
            ELLIPSE: 'ellipse',
            PICKER: 'picker',
            CLEAR: 'clear',
-           REC_DASH: 'rec_dash' 
+           REC_DASH: 'rec_dash',
+           UNDO:'undo' 
         }
         //UTILITIES
         const $ = selector => document.querySelector(selector)
@@ -189,7 +190,8 @@
         const $rectangleBtn = $('#rectangle-btn')
         const $pickerBtn = $('#picker-btn')
         const $clearBtn = $("#clear-btn");
-        const $recSelect = $('#rect-select-btn')
+        const $recSelectBtn = $('#rect-select-btn')
+        const $undoBtn = $('#image-data-backup')
         const ctx = $canvas.getContext('2d',{willReadFrequently: true})
         
 
@@ -200,6 +202,7 @@
         let lastY = 0
         let mode = MODES.DRAW
         let imageData
+        let imageRepositiry= []
         let isShiftPressed = false
 
         //EVENTS
@@ -236,8 +239,27 @@
                 return clearCanvas()
             }
         )
-        $recSelect.addEventListener("click", () =>{
+        $recSelectBtn.addEventListener("click", () =>{
             setMode(MODES.REC_DASH)
+        })
+
+        $undoBtn.addEventListener('click', ev =>{
+            setMode(MODES.UNDO)
+            ev.preventDefault()
+            let imageNro = imageRepositiry.length-1;
+            if(imageNro < 0) {
+                setTimeout(() =>{
+                    setMode(MODES.DRAW)
+                },200)
+                return
+            }
+            ctx.putImageData(imageRepositiry[imageNro],0,0)
+            imageNro--;
+            imageRepositiry.pop()
+            setTimeout(() =>{
+                    setMode(MODES.DRAW)
+                },200)
+
         })
 
         document.addEventListener("keydown", handleKeyDown)
@@ -263,6 +285,8 @@
 
             imageData = ctx.getImageData(
                 0,0,canvas.width,canvas.height)
+                imageRepositiry.push(imageData)
+                console.log(imageRepositiry)
         }
 
         function draw(event){
@@ -368,6 +392,15 @@
 
                 ctx.beginPath()
                 ctx.rect(startX, startY,width,height)
+                setTimeout(() =>{
+                    const borde = 0
+                    ctx.clearRect(startX-borde,startY-borde,width+borde,height+borde)
+                   
+                },1000)
+                setTimeout(() => {
+                    ctx.putImageData(imageData,0,0)
+                },2000)
+
                 ctx.stroke()
                 return
             }
@@ -386,6 +419,7 @@
             //tambien nos ayudaria a limpiar parte del canvas 
             //con la herramienta de selección.
             ctx.clearRect(0,0, canvas.width, canvas.height)
+            imageRepositiry= []
         }
 
         async function setMode(newMode){
@@ -455,12 +489,15 @@
             }
 
             if(mode  === MODES.REC_DASH){
-                $recSelect.classList.add('active')
+                $recSelectBtn.classList.add('active')
                 ctx.lineWidth = 1
                 ctx.strokeStyle = "#000000"
                 $colorPicker.value = "#000000"
                 $canvas.style.cursor = "crosshair"
                 $colorPicker.style.pointerEvents = "none"
+            }
+            if(mode === MODES.UNDO){
+                $undoBtn.classList.add('active')
             }
         }
 
@@ -478,7 +515,7 @@
             $pickerBtn.removeAttribute('disabled')
         }
 
-
+    
 
         document.getElementById("guardarIMG").addEventListener("click", function() {
             // Convertir el canvas a una URL de datos en formato PNG
@@ -531,6 +568,7 @@
                 <button id="fill-btn" title="Rellenar figura"></button>
                 <button id="rect-select-btn" title="Seleccion Rectangular"></button>
                 <button id="clear-btn" title="Limpiar dibujo"></button>
+                <button id = "image-data-backup" title="volver atras"></button>
 
 
 
