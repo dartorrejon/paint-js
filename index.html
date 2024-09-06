@@ -161,6 +161,10 @@
             background-image: url("./icons/undo.png");
             background-size: 17px;
         }
+        #chlinewidth-btn{
+            background-image: url("icons/width.png");
+            background-size: 15px;
+        }
         
         
     </style>
@@ -174,7 +178,8 @@
            PICKER: 'picker',
            CLEAR: 'clear',
            REC_DASH: 'rec_dash',
-           UNDO:'undo' 
+           UNDO:'undo',
+           LINE_WIDTH: 'line_width' 
         }
         //UTILITIES
         const $ = selector => document.querySelector(selector)
@@ -182,7 +187,6 @@
 
         //ELEMENTS
         const $canvas = $('#canvas')
-        
         const $colorPicker = $('#color-picker')
         const $drawBtn = $('#draw-btn')
         const $eraseBtn = $('#erase-btn')
@@ -192,9 +196,9 @@
         const $clearBtn = $("#clear-btn");
         const $recSelectBtn = $('#rect-select-btn')
         const $undoBtn = $('#image-data-backup')
+        const $lineWidthBtn = $('#chlinewidth-btn')
         const ctx = $canvas.getContext('2d',{willReadFrequently: true})
-        
-
+       
         //STATE
         let isDrawing = false
         let startX, startY
@@ -219,6 +223,7 @@
 
         $colorPicker.addEventListener("change",handleChangeColor)
         //$colorPicker.onchange = handleChangeColor <-- otra forma de escribir el codigo de arriba creo que es mas legible y corto
+
         $drawBtn.addEventListener("click",()=>{
             setMode(MODES.DRAW)
         })
@@ -244,8 +249,8 @@
         })
 
         $undoBtn.addEventListener('click', ev =>{
-            setMode(MODES.UNDO)
             ev.preventDefault()
+            setMode(MODES.UNDO)
             let imageNro = imageRepositiry.length-1;
             if(imageNro < 0) {
                 setTimeout(() =>{
@@ -260,6 +265,9 @@
                     setMode(MODES.DRAW)
                 },200)
 
+        })
+        $lineWidthBtn.addEventListener('click', () =>{
+            setMode(MODES.LINE_WIDTH)
         })
 
         document.addEventListener("keydown", handleKeyDown)
@@ -317,12 +325,10 @@
                 //dibujar una linea entre coordenadas actuales y las nuevas
                 ctx.lineTo(offsetX, offsetY)
 
-
                 ctx.stroke();
 
                 //actualizar las ultimas coordenadas
                 [lastX, lastY] = [offsetX, offsetY]
-
                 return
             }
 
@@ -404,6 +410,9 @@
                 ctx.stroke()
                 return
             }
+            if(mode === MODES.LINE_WIDTH){
+                //TODO
+            }
         }
 
         function stopDrawing(event){
@@ -416,8 +425,8 @@
         }
 
         function clearCanvas(){
-            //tambien nos ayudaria a limpiar parte del canvas 
-            //con la herramienta de selección.
+            //Tambien nos ayudaria a limpiar parte del canvas 
+            //Con la herramienta de selección.
             ctx.clearRect(0,0, canvas.width, canvas.height)
             imageRepositiry= []
         }
@@ -431,7 +440,7 @@
             mode = newMode
             ctx.globalCompositeOperation = "source-over"
 
-            //limpiamos el boton activo actual y habilitamos el boton para seleccion de color nuevamente.
+            //Limpiamos el botón activo actual y habilitamos el botón para selección de color nuevamente.
             $('button.active')?.classList.remove('active')
             $colorPicker.style.pointerEvents = "initial"
             
@@ -465,12 +474,11 @@
                 $pickerBtn.classList.add('active')
                 const eyeDropper = new window.EyeDropper()
                 try {
-
                     const {sRGBHex} = await eyeDropper.open()
                     ctx.strokeStyle = sRGBHex
                     $colorPicker.value = sRGBHex
 
-                    //condicion para evitar que luego del color picker vuelva a modo erase o seleccion rectangular
+                    //Condición para evitar que luego del color picker vuelva a modo erase o seleccion rectangular
                     if(previousMode === MODES.ERASE || previousMode === MODES.REC_DASH){
                         setMode(MODES.DRAW)
                     }else{
@@ -499,6 +507,9 @@
             if(mode === MODES.UNDO){
                 $undoBtn.classList.add('active')
             }
+            if(mode === MODES.LINE_WIDTH){
+                $lineWidthBtn.classList.add('active')
+            }
         }
 
         function handleKeyDown({key}){
@@ -515,8 +526,6 @@
             $pickerBtn.removeAttribute('disabled')
         }
 
-    
-
         document.getElementById("guardarIMG").addEventListener("click", function() {
             // Convertir el canvas a una URL de datos en formato PNG
             const dataURL = $canvas.toDataURL("image/png");
@@ -529,7 +538,6 @@
             // Simular clic en el enlace para descargar la imagen
             enlace.click();
         });
-        
     </script>
 </head>
 <body>
@@ -543,14 +551,12 @@
                 <ul>
                     <li id="guardarIMG">
                         Guardar archivo
-
                     </li>
                 </ul>
             </button>
             <button>Edit <ul>
                 <li>
                    Undo
-
                 </li>
             </ul></button>
             <button>View</button>
@@ -567,11 +573,9 @@
                 <button id="picker-btn" title="Capturar color" disabled></button>
                 <button id="fill-btn" title="Rellenar figura"></button>
                 <button id="rect-select-btn" title="Seleccion Rectangular"></button>
-                <button id="clear-btn" title="Limpiar dibujo"></button>
+                <button id = "chlinewidth-btn" title="cambiar ancho de linea"></button>
                 <button id = "image-data-backup" title="volver atras"></button>
-
-
-
+                <button id="clear-btn" title="Limpiar dibujo"></button>
             </nav>
         </aside>
         <main>
