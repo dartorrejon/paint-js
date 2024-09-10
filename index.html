@@ -15,7 +15,6 @@
             padding: 16px;
             max-width: 500px;
             margin: 0 auto;
-            
         }
 
         h1{
@@ -28,7 +27,6 @@
             align-items: center;
             gap: 4px;
            
-
             img{
                 width: 16px;
                 height: auto;
@@ -75,7 +73,6 @@
                         list-style: none;
                         font-size: .8em;
                     }
-
                 }
             }
         }
@@ -162,8 +159,32 @@
             background-size: 17px;
         }
         #chlinewidth-btn{
-            background-image: url("icons/width.png");
-            background-size: 15px;
+            background: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-evenly;
+            gap: .3px;
+            margin-block: .5px;
+            div{
+                background-color: gray;
+                height: 1px;
+                width: 16px;
+                border-radius: 1px;
+                
+            }      
+            .line2{
+                height: 2px;
+            }
+            .line3{
+                height: 2.7px;
+            }    
+            .line4{
+                height: 3.4px;
+            }
+            .selected{
+                    background-color: #000;
+                }
         }
         
         
@@ -197,8 +218,9 @@
         const $recSelectBtn = $('#rect-select-btn')
         const $undoBtn = $('#image-data-backup')
         const $lineWidthBtn = $('#chlinewidth-btn')
+        const $lines =$$('div.line')
         const ctx = $canvas.getContext('2d',{willReadFrequently: true})
-       
+
         //STATE
         let isDrawing = false
         let startX, startY
@@ -208,13 +230,14 @@
         let imageData
         let imageRepositiry= []
         let isShiftPressed = false
+        let lineWidthSelector = 1
 
         //EVENTS
         $canvas.addEventListener('mousedown',startDrawing)
         $canvas.addEventListener('mousemove',draw)
         $canvas.addEventListener('mouseup', stopDrawing)
         $canvas.addEventListener('mouseleave', stopDrawing)
-         
+        $lines[lineWidthSelector-1].classList.add('selected')
         //PHONE EVENTS
         $canvas.ontouchstart = startDrawing
         $canvas.ontouchmove = draw
@@ -447,20 +470,23 @@
             if(mode === MODES.DRAW){
                 $drawBtn.classList.add('active')
                 canvas.style.cursor ="url('./cursors/pincel.png') 0 24, auto"
-                ctx.lineWidth=2 
+                ctx.lineWidth= lineWidthSelector
+                //las siguientes 2 funciones ayudan a que el trazado de la linea sea mas uniforme
+                ctx.lineCap = 'round'
+                ctx.lineJoin = 'round'
                 return
                 
             }
             if(mode === MODES.RECTANGLE){
                 $rectangleBtn.classList.add('active')
                 canvas.style.cursor = "crosshair"
-                ctx.lineWidth=2 
+                ctx.lineWidth=lineWidthSelector 
                 return
             }
             if(mode === MODES.ELLIPSE){
                 $ellipseBtn.classList.add('active')
                 canvas.style.cursor = "crosshair"
-                ctx.lineWidth=2 
+                ctx.lineWidth=lineWidthSelector 
                 return
             }
             if(mode === MODES.ERASE){
@@ -498,7 +524,7 @@
 
             if(mode  === MODES.REC_DASH){
                 $recSelectBtn.classList.add('active')
-                ctx.lineWidth = 1
+                ctx.lineWidth = lineWidthSelector
                 ctx.strokeStyle = "#000000"
                 $colorPicker.value = "#000000"
                 $canvas.style.cursor = "crosshair"
@@ -509,6 +535,15 @@
             }
             if(mode === MODES.LINE_WIDTH){
                 $lineWidthBtn.classList.add('active')
+                $lines[lineWidthSelector-1]?.classList.remove('selected')
+                if(lineWidthSelector ===4) {
+                    lineWidthSelector =0
+                }
+                lineWidthSelector++;
+                $lines[lineWidthSelector-1]?.classList.add('selected')
+                setTimeout( () =>{
+                    setMode(previousMode)
+                },200)
             }
         }
 
@@ -527,13 +562,11 @@
         }
 
         document.getElementById("guardarIMG").addEventListener("click", function() {
-            // Convertir el canvas a una URL de datos en formato PNG
             const dataURL = $canvas.toDataURL("image/png");
 
-            // Crear un enlace de descarga
             const enlace = document.createElement("a");
             enlace.href = dataURL;
-            enlace.download = "mi_dibujo.png"; // Nombre del archivo a guardar
+            enlace.download = "mi_dibujo.png";
 
             // Simular clic en el enlace para descargar la imagen
             enlace.click();
@@ -573,7 +606,12 @@
                 <button id="picker-btn" title="Capturar color" disabled></button>
                 <button id="fill-btn" title="Rellenar figura"></button>
                 <button id="rect-select-btn" title="Seleccion Rectangular"></button>
-                <button id = "chlinewidth-btn" title="cambiar ancho de linea"></button>
+                <button id = "chlinewidth-btn" title="cambiar ancho de linea">
+                    <div class="line line1"></div>
+                    <div class="line line2"></div>
+                    <div class="line line3"></div>
+                    <div class="line line4"></div>
+                </button>
                 <button id = "image-data-backup" title="volver atras"></button>
                 <button id="clear-btn" title="Limpiar dibujo"></button>
             </nav>
