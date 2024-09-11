@@ -62,10 +62,10 @@
                     top: 4px;
                     visibility: hidden;
                     width: max-content;
+                    height: 200px;
                    
                     li{
                         padding: 4px;
-                        position: fixed;
                         text-align: left;
                         background-color: silver;
                         margin-left: -20px;
@@ -231,6 +231,12 @@
         let imageRepositiry= []
         let isShiftPressed = false
         let lineWidthSelector = 1
+        const lineWidthValues ={
+            1: 2,
+            2: 7,
+            3: 12,
+            4:16
+        }
 
         //EVENTS
         $canvas.addEventListener('mousedown',startDrawing)
@@ -317,7 +323,6 @@
             imageData = ctx.getImageData(
                 0,0,canvas.width,canvas.height)
                 imageRepositiry.push(imageData)
-                console.log(imageRepositiry)
         }
 
         function draw(event){
@@ -470,8 +475,8 @@
             if(mode === MODES.DRAW){
                 $drawBtn.classList.add('active')
                 canvas.style.cursor ="url('./cursors/pincel.png') 0 24, auto"
-                ctx.lineWidth= lineWidthSelector
-                //las siguientes 2 funciones ayudan a que el trazado de la linea sea mas uniforme
+                ctx.lineWidth= lineWidthValues[lineWidthSelector]
+                //Las siguientes 2 funciones ayudan a que el trazado de la linea sea mas uniforme
                 ctx.lineCap = 'round'
                 ctx.lineJoin = 'round'
                 return
@@ -480,20 +485,20 @@
             if(mode === MODES.RECTANGLE){
                 $rectangleBtn.classList.add('active')
                 canvas.style.cursor = "crosshair"
-                ctx.lineWidth=lineWidthSelector 
+                ctx.lineWidth=lineWidthValues[lineWidthSelector]
                 return
             }
             if(mode === MODES.ELLIPSE){
                 $ellipseBtn.classList.add('active')
                 canvas.style.cursor = "crosshair"
-                ctx.lineWidth=lineWidthSelector 
+                ctx.lineWidth=lineWidthValues[lineWidthSelector]
                 return
             }
             if(mode === MODES.ERASE){
                 $eraseBtn.classList.add('active')
                 canvas.style.cursor = 'url("./cursors/erase.png") 0 24, auto'
                 ctx.globalCompositeOperation  = 'destination-out'
-                ctx.lineWidth = 20
+                ctx.lineWidth = lineWidthValues[lineWidthSelector]+4
                 return
             }
             if(mode===MODES.PICKER){
@@ -524,7 +529,7 @@
 
             if(mode  === MODES.REC_DASH){
                 $recSelectBtn.classList.add('active')
-                ctx.lineWidth = lineWidthSelector
+                ctx.lineWidth = 1
                 ctx.strokeStyle = "#000000"
                 $colorPicker.value = "#000000"
                 $canvas.style.cursor = "crosshair"
@@ -582,8 +587,9 @@
         <header>
             <button>File
                 <ul>
+                    <li>New File</li>
                     <li id="guardarIMG">
-                        Guardar archivo
+                        Save File
                     </li>
                 </ul>
             </button>
