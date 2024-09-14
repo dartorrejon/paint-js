@@ -230,7 +230,8 @@
         let imageData
         let imageRepositiry= []
         let isShiftPressed = false
-        let lineWidthSelector = 1
+        let lineWidthValue = 1
+        let selectedBackup
         const lineWidthValues ={
             1: 2,
             2: 7,
@@ -243,7 +244,7 @@
         $canvas.addEventListener('mousemove',draw)
         $canvas.addEventListener('mouseup', stopDrawing)
         $canvas.addEventListener('mouseleave', stopDrawing)
-        $lines[lineWidthSelector-1].classList.add('selected')
+        $lines[lineWidthValue-1].classList.add('selected')
         //PHONE EVENTS
         $canvas.ontouchstart = startDrawing
         $canvas.ontouchmove = draw
@@ -295,6 +296,7 @@
                 },200)
 
         })
+
         $lineWidthBtn.addEventListener('click', () =>{
             setMode(MODES.LINE_WIDTH)
         })
@@ -413,6 +415,7 @@
                 let width = offsetX - startX
                 let height = offsetY - startY
 
+                console.log("sX: ",startX,"sY: ",startY,"w: ",width,"h: ",height)
                 if(isShiftPressed){
                     const sideLength = Math.min(
                         Math.abs(width),
@@ -423,13 +426,12 @@
                 }
                 //setLineDash -> Metodo para cambiar de linea comun a punteada
                 ctx.setLineDash([3,3])
-
+                selectedBackup= {startX,startY,width,height}
                 ctx.beginPath()
                 ctx.rect(startX, startY,width,height)
+                
                 setTimeout(() =>{
-                    const borde = 0
-                    ctx.clearRect(startX-borde,startY-borde,width+borde,height+borde)
-                   
+                    ctx.clearRect(startX+2,startY+2,width-4,height-4)
                 },1000)
                 setTimeout(() => {
                     ctx.putImageData(imageData,0,0)
@@ -451,12 +453,20 @@
             const {value} = $colorPicker
             ctx.strokeStyle = value
         }
+        function extendValue(value,added){
+            return value+added
+        }
 
         function clearCanvas(){
             //Tambien nos ayudaria a limpiar parte del canvas 
             //Con la herramienta de selección.
             ctx.clearRect(0,0, canvas.width, canvas.height)
             imageRepositiry= []
+            $lines[lineWidthValue-1]?.classList.remove('selected')
+            $lines[0].classList.add('selected')
+            lineWidthValue =1
+            ctx.lineWidth=lineWidthValues[lineWidthValue]
+            
         }
 
         async function setMode(newMode){
@@ -475,7 +485,7 @@
             if(mode === MODES.DRAW){
                 $drawBtn.classList.add('active')
                 canvas.style.cursor ="url('./cursors/pincel.png') 0 24, auto"
-                ctx.lineWidth= lineWidthValues[lineWidthSelector]
+                ctx.lineWidth= lineWidthValues[lineWidthValue]
                 //Las siguientes 2 funciones ayudan a que el trazado de la linea sea mas uniforme
                 ctx.lineCap = 'round'
                 ctx.lineJoin = 'round'
@@ -485,20 +495,20 @@
             if(mode === MODES.RECTANGLE){
                 $rectangleBtn.classList.add('active')
                 canvas.style.cursor = "crosshair"
-                ctx.lineWidth=lineWidthValues[lineWidthSelector]
+                ctx.lineWidth=lineWidthValues[lineWidthValue]
                 return
             }
             if(mode === MODES.ELLIPSE){
                 $ellipseBtn.classList.add('active')
                 canvas.style.cursor = "crosshair"
-                ctx.lineWidth=lineWidthValues[lineWidthSelector]
+                ctx.lineWidth=lineWidthValues[lineWidthValue]
                 return
             }
             if(mode === MODES.ERASE){
                 $eraseBtn.classList.add('active')
                 canvas.style.cursor = 'url("./cursors/erase.png") 0 24, auto'
                 ctx.globalCompositeOperation  = 'destination-out'
-                ctx.lineWidth = lineWidthValues[lineWidthSelector]+4
+                ctx.lineWidth = lineWidthValues[lineWidthValue]+4
                 return
             }
             if(mode===MODES.PICKER){
@@ -540,12 +550,12 @@
             }
             if(mode === MODES.LINE_WIDTH){
                 $lineWidthBtn.classList.add('active')
-                $lines[lineWidthSelector-1]?.classList.remove('selected')
-                if(lineWidthSelector ===4) {
-                    lineWidthSelector =0
+                $lines[lineWidthValue-1]?.classList.remove('selected')
+                if(lineWidthValue ===4) {
+                    lineWidthValue =0
                 }
-                lineWidthSelector++;
-                $lines[lineWidthSelector-1]?.classList.add('selected')
+                lineWidthValue++;
+                $lines[lineWidthValue-1]?.classList.add('selected')
                 setTimeout( () =>{
                     setMode(previousMode)
                 },200)
@@ -559,6 +569,7 @@
         function handleKeyUp({key}){
             if(key === 'Shift') isShiftPressed = false
         }
+       
        
         setMode(MODES.DRAW)
         //Show picker if browser has support
