@@ -425,7 +425,6 @@
                 let width = offsetX - startX
                 let height = offsetY - startY
 
-                console.log("sX: ",startX,"sY: ",startY,"w: ",width,"h: ",height)
                 if(isShiftPressed){
                     const sideLength = Math.min(
                         Math.abs(width),
@@ -625,6 +624,10 @@
             // Simular clic en el enlace para descargar la imagen
             enlace.click();
         });
+        document.getElementById("delSelect").addEventListener("click", ev => {
+            const {sX, sY,w,h} = clearDashRect(selectBackup.startX,selectBackup.startY,selectBackup.width,selectBackup.height)
+            ctx.clearRect(sX,sY,w,h)
+        })
     </script>
 </head>
 <body>
@@ -645,6 +648,9 @@
             <button>Edit <ul>
                 <li>
                    Undo
+                </li>
+                <li id="delSelect">
+                    Delete
                 </li>
             </ul></button>
             <button>View</button>
