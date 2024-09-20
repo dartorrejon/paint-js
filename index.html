@@ -231,7 +231,8 @@
         let imageRepositiry= []
         let isShiftPressed = false
         let lineWidthValue = 1
-        let selectedBackup
+        let selectBackup = {}
+        //let dashFlag = false
         const lineWidthValues ={
             1: 2,
             2: 7,
@@ -402,7 +403,6 @@
 
                 //Resetaamos la linea punteada a normal con un array vacio
                 ctx.setLineDash([])
-
                 ctx.beginPath()
                 ctx.ellipse(startX,startY,Math.abs(width),Math.abs(height),0,0, 2*Math.PI,true)
                 ctx.stroke()
@@ -411,7 +411,17 @@
 
             if(mode === MODES.REC_DASH){
                 ctx.putImageData(imageData,0,0)
-
+                // if(dashFlag){
+                //     console.log("entramos")
+                //     // console.log(clearDashRect(selectBackup.startX,selectBackup.startY,selectBackup.width,selectBackup.height))
+                //     //const imgBckp = imageRepositiry.length-1
+                //     console.log(imageRepositiry)
+                //     let indexImg  = imageRepositiry.length-1
+                //     indexImg--
+                //     console.log(indexImg)
+                //     ctx.putImageData(imageRepositiry[indexImg],0,0)
+                //     dashFlag= false
+                // }
                 let width = offsetX - startX
                 let height = offsetY - startY
 
@@ -426,18 +436,11 @@
                 }
                 //setLineDash -> Metodo para cambiar de linea comun a punteada
                 ctx.setLineDash([3,3])
-                selectedBackup= {startX,startY,width,height}
+                selectBackup= {startX,startY,width,height}
                 ctx.beginPath()
                 ctx.rect(startX, startY,width,height)
-                
-                setTimeout(() =>{
-                    ctx.clearRect(startX+2,startY+2,width-4,height-4)
-                },1000)
-                setTimeout(() => {
-                    ctx.putImageData(imageData,0,0)
-                },2000)
-
                 ctx.stroke()
+                //dashFlag = false
                 return
             }
             if(mode === MODES.LINE_WIDTH){
@@ -562,6 +565,35 @@
             }
         }
 
+        function clearDashRect(startX, startY, width,height){
+            let sX,sY,w,h
+            if(startX>0 && startY>0 && width <0 && height < 0){
+                        sX=startX+2
+                        sY=startY+2
+                        w=width-4
+                        h=height-4
+                        return {sX,sY,w,h}
+            }else if(startX>0 && startY>0 && width >0 && height > 0){
+                sX=startX-2
+                sY=startY-2
+                w=width+4
+                h=height+4
+                return {sX,sY,w,h}
+            }else if(startX>0 && startY>0 && width < 0 && height > 0){
+                sX=startX+2
+                sY=startY-2
+                w=width-4
+                h=height+4
+                return {sX,sY,w,h}
+            }else if(startX>0 && startY>0 && width >0 && height < 0){
+                sX=startX-2
+                sY=startY+2
+                w=width+4
+                h=height-4
+                return {sX,sY,w,h}
+            }
+        }
+
         function handleKeyDown({key}){
             isShiftPressed = key === 'Shift'
         }
@@ -569,6 +601,13 @@
         function handleKeyUp({key}){
             if(key === 'Shift') isShiftPressed = false
         }
+        
+        document.body.addEventListener("keydown", ev =>{
+            if(ev.key === 'Delete'){
+                const {sX, sY,w,h} = clearDashRect(selectBackup.startX,selectBackup.startY,selectBackup.width,selectBackup.height)
+                ctx.clearRect(sX,sY,w,h)
+            }
+        })
        
        
         setMode(MODES.DRAW)
@@ -583,7 +622,6 @@
             const enlace = document.createElement("a");
             enlace.href = dataURL;
             enlace.download = "mi_dibujo.png";
-
             // Simular clic en el enlace para descargar la imagen
             enlace.click();
         });
@@ -622,14 +660,14 @@
                 <button id="ellipse-btn" title="Elipse"></button>
                 <button id="picker-btn" title="Capturar color" disabled></button>
                 <button id="fill-btn" title="Rellenar figura"></button>
-                <button id="rect-select-btn" title="Seleccion Rectangular"></button>
-                <button id = "chlinewidth-btn" title="cambiar ancho de linea">
+                <button id="rect-select-btn" title="Selección Rectangular"></button>
+                <button id = "chlinewidth-btn" title="Ancho de linea">
                     <div class="line line1"></div>
                     <div class="line line2"></div>
                     <div class="line line3"></div>
                     <div class="line line4"></div>
                 </button>
-                <button id = "image-data-backup" title="volver atras"></button>
+                <button id = "image-data-backup" title="Volver atras"></button>
                 <button id="clear-btn" title="Limpiar dibujo"></button>
             </nav>
         </aside>
